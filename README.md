@@ -24,7 +24,7 @@ Update these values when running Terraform:
 gcloud auth configure-docker ${REGION}-docker.pkg.dev --quiet
 
 REGION=europe-north1
-PROJECT_ID=goodin-analytics
+PROJECT_ID=goodinanalytics
 REPO=goodin-killswitch
 IMAGE=${REGION}-docker.pkg.dev/${PROJECT_ID}/${REPO}/service:latest
 

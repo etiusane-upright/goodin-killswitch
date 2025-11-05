@@ -1,8 +1,6 @@
-project_id         = "goodin-analytics"
+project_id         = "goodinanalytics"
 region             = "europe-north1"
 topic_project_id   = "goodinanalytics" # project that owns the budget alert topic
 topic_name         = "goodin-50e-killswitch"
 billing_account_id = "0145A9-DF137F-0C8E2A"
-container_image    = "europe-north1-docker.pkg.dev/goodin-analytics/goodin-killswitch/service:latest"
-
-
+container_image    = "europe-north1-docker.pkg.dev/goodinanalytics/goodin-killswitch/service:latest"
