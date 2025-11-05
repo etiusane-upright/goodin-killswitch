@@ -1,0 +1,4 @@
+Flask==3.0.2
+google-cloud-billing==1.13.1
+gunicorn==21.2.0
+
