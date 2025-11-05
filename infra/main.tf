@@ -23,7 +23,7 @@ provider "google" {
 variable "project_id" {
   description = "GCP project ID where to deploy the killswitch"
   type        = string
-  default     = "goodin-analytics"
+  default     = "goodinanalytics"
 }
 
 variable "region" {
@@ -119,7 +119,7 @@ resource "google_cloud_run_v2_service" "service" {
 variable "container_image" {
   description = "Full container image URL for the Cloud Run service"
   type        = string
-  default     = "europe-north1-docker.pkg.dev/goodin-analytics/goodin-killswitch/service:latest"
+  default     = "europe-north1-docker.pkg.dev/goodinanalytics/goodin-killswitch/service:latest"
 }
 
 # Allow Pub/Sub to invoke the service (push subscription uses OIDC)
