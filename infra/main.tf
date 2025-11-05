@@ -13,15 +13,23 @@ provider "google" {
   region  = var.region
 }
 
+# Optional secondary provider targeting the project that owns the Pub/Sub topic
+provider "google" {
+  alias   = "topic"
+  project = var.topic_project_id
+  region  = var.region
+}
+
 variable "project_id" {
-  description = "+"
+  description = "GCP project ID where to deploy the killswitch"
   type        = string
+  default     = "goodin-analytics"
 }
 
 variable "region" {
   description = "Region for Cloud Run"
   type        = string
-  default     = "us-central1"
+  default     = "europe-north1"
 }
 
 variable "topic_name" {
@@ -30,9 +38,16 @@ variable "topic_name" {
   default     = "goodin-50e-killswitch"
 }
 
+variable "topic_project_id" {
+  description = "Project ID that owns the Pub/Sub topic (can be different from deployment project)"
+  type        = string
+  default     = "goodinanalytics"
+}
+
 variable "billing_account_id" {
   description = "Billing account ID used by the project (e.g. 012345-6789AB-CDEF01). Needed to grant access for disabling billing."
   type        = string
+  default     = "0145A9-DF137F-0C8E2A"
 }
 
 locals {
@@ -104,7 +119,7 @@ resource "google_cloud_run_v2_service" "service" {
 variable "container_image" {
   description = "Full container image URL for the Cloud Run service"
   type        = string
-  default     = ""
+  default     = "europe-north1-docker.pkg.dev/goodin-analytics/goodin-killswitch/service:latest"
 }
 
 # Allow Pub/Sub to invoke the service (push subscription uses OIDC)
@@ -115,14 +130,16 @@ resource "google_cloud_run_v2_service_iam_member" "invoker" {
   member   = "serviceAccount:${google_service_account.killswitch.email}"
 }
 
-# Create a push subscription to the existing topic, targeting Cloud Run URL
+// Create a push subscription to the existing topic, targeting Cloud Run URL
 data "google_pubsub_topic" "budget_topic" {
-  name = var.topic_name
+  provider = google.topic
+  name     = var.topic_name
 }
 
 resource "google_pubsub_subscription" "push_sub" {
-  name  = "${local.service_name}-sub"
-  topic = data.google_pubsub_topic.budget_topic.name
+  provider = google.topic
+  name     = "${local.service_name}-sub"
+  topic    = data.google_pubsub_topic.budget_topic.name
 
   push_config {
     push_endpoint = google_cloud_run_v2_service.service.uri

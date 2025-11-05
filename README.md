@@ -12,7 +12,7 @@ This project deploys a Cloud Run service that is triggered by a Pub/Sub push sub
 ### Configure
 Update these values when running Terraform:
 - `project_id`: GCP project ID to protect
-- `region`: Cloud Run region (default `us-central1`)
+- `region`: Cloud Run region (default `europe-north1`)
 - `topic_name`: Existing Pub/Sub topic that receives budget alerts (e.g. `goodin-50e-killswitch`)
 - `billing_account_id`: Your billing account ID (format `012345-6789AB-CDEF01`)
 
@@ -23,8 +23,8 @@ Update these values when running Terraform:
 ```bash
 gcloud auth configure-docker ${REGION}-docker.pkg.dev --quiet
 
-REGION=us-central1
-PROJECT_ID=<your-project-id>
+REGION=europe-north1
+PROJECT_ID=goodin-analytics
 REPO=goodin-killswitch
 IMAGE=${REGION}-docker.pkg.dev/${PROJECT_ID}/${REPO}/service:latest
 
@@ -38,18 +38,14 @@ From the repo root:
 ```bash
 cd infra
 terraform init
-terraform apply \
-  -var project_id=<your-project-id> \
-  -var region=us-central1 \
-  -var billing_account_id=<your-billing-account-id> \
-  -var container_image=${REGION}-docker.pkg.dev/<your-project-id>/goodin-killswitch/service:latest
+terraform apply
 ```
 
 Terraform will:
 - Create a runtime service account
 - Grant it permissions to disable billing
 - Deploy the Cloud Run service
-- Create a Pub/Sub push subscription pointed at the service URL
+- Create a Pub/Sub push subscription pointed at the service URL (in `topic_project_id`)
 
 ### Budget Alert Topic
 Ensure your budgets are configured to publish to the topic referenced by `topic_name` (e.g. `projects/goodinanalytics/topics/goodin-50e-killswitch`).
@@ -57,5 +53,11 @@ Ensure your budgets are configured to publish to the topic referenced by `topic_
 ### Security Notes
 - The push subscription uses OIDC with the service account and requires `roles/run.invoker` only.
 - The runtime service account needs `roles/billing.projectManager` on the target project and read on the billing account. Your org may require `roles/billing.admin` on the billing account to detach; adjust as needed.
+
+### Remote state (optional but recommended)
+Copy `infra/backend.tf.example` to `infra/backend.tf` and set your GCS bucket for Terraform state. Re-run `terraform init` to migrate state.
+
+### Cross-project permissions
+If the topic lives in another project (e.g., `goodinanalytics`), your deploy credentials need `roles/pubsub.admin` or at least `roles/pubsub.subscriber` on that project to create the subscription. The push to Cloud Run uses OIDC with the runtime service account, which already has `roles/run.invoker` in this config.
 
 
